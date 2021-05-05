@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+</head>
+<title>AIKEN Importer</title>
+
+<style>
+	@import url('https://fonts.googleapis.com/css2?family=Karla&family=Montserrat:wght@600&display=swap');
+
+	body,
+	html {
+		font-family: 'Montserrat', sans-serif;
+		margin: 0;
+		color: #2B2C30;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	h1 {
+		height: 56px;
+		line-height: 56px;
+		font-size: 24px;
+		display: inline-block;
+		margin: 0;
+	}
+
+	textarea {
+		font-family: 'Karla', sans-serif;
+		width: calc(100% - 56px);
+		padding: 28px;
+		border: none;
+		height: calc(100% - 168px);
+		background-color: #2B2C30;
+		color: #F0F0F6;
+		font-size: 24px;
+		resize: none;
+	}
+
+	textarea:focus {
+		outline: none;
+	}
+
+	img {
+		height: 28px;
+		user-select: none;
+		-webkit-user-drag: none;
+	}
+
+	#navbar {
+		display: inline-flex;
+		align-items: center;
+		width: calc(100% - 56px);
+		gap: 56px;
+		height: 56px;
+		padding: 28px;
+		background: #F0F0F6;
+		position: relative;
+		top: 0;
+		left: 0;
+	}
+
+	.button {
+		width: fit-content;
+		color: #fff;
+		background-color: #2F80ED;
+		height: 56px;
+		line-height: 56px;
+		padding-left: 28px;
+		padding-right: 28px;
+		border-radius: 14px;
+		font-weight: 600;
+		font-size: 21px;
+		cursor: pointer;
+		user-select: none;
+		position: absolute;
+		right: 28px;
+	}
+
+	#close {
+		bottom: 28px;
+	}
+
+	#popupContainer {
+		position: absolute;
+		display: none;
+		justify-content: center;
+		align-items: center;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 99;
+		background-color: #2b2c30bb;
+		backdrop-filter: blur(2px);
+	}
+
+	.popup {
+		position: relative;
+		background-color: #fff;
+		width: 588px;
+		height: 336px;
+		border-radius: 28px;
+		padding: 28px;
+	}
+
+	.result {
+		width: calc(100% - 28px);
+		height: 28px;
+		line-height: 28px;
+		background-color: #F0F0F6;
+		border-radius: 14px;
+		padding: 14px;
+		overflow-x: scroll;
+		overflow-y: none;
+		white-space: nowrap;
+	}
+
+	.result::-webkit-scrollbar {
+		display: none;
+	}
+</style>
+
+<body>
+	<div id="navbar">
+		<img src="https://kevinuulong.com/images/logos/kl.svg"/>
+		<h1>AIKEN Importer</h1>
+		<div id="createQuiz" class="button">Create Quiz</div>
+	</div>
+	<textarea id="quizInput"></textarea>
+	<div id="popupContainer">
+		<div id="resultsPopup" class="popup">
+			<h2 class="label">Published URL</h2>
+			<p id="published" class="result"></p>
+			<h2 class="label">Edit URL</h2>
+			<p id="edit" class="result"></p>
+			<div id="close" class="button">Close</div>
+		</div>
+	</div>
+	<script>
+		let data;
+
+        document.querySelector("#createQuiz").addEventListener('click', () => {
+            data = document.querySelector("#quizInput").value;
+            let splitData = data.split(/\n\n/gm).map(q => q.split(/\n/gm));
+            let questions = splitData.map(q => q[0]);
+            let correctIndex = splitData.map(a => {
+                let ans = a[a.length - 1].replace(/ANSWER: /, '');
+                let i = 0;
+                a.some(c => {
+                    if (c.indexOf(ans + '. ') === 0) return i;;
+                    i++;
+                });
+                return i - 1;
+            })
+            let answers = splitData.map(ans => ans.slice(1, ans.length - 1).map(ians => ians.substring(ians.indexOf(/'. '/) + 4)));
+
+            google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex);
+        })
+
+        function onSuccess(message) {
+            message = JSON.parse(message);
+            successPopup(message.published, message.edit);
+        }
+
+        function successPopup(published, edit) {
+            document.querySelector("#published").textContent = published;
+            document.querySelector("#edit").textContent = edit;
+            document.querySelector("#popupContainer").style.display = 'flex';
+        }
+
+        document.querySelector("#close").addEventListener('click', () => {
+            document.querySelector("#popupContainer").style.display = 'none';
+        })
+	</script>
+</body>
+
+</html>
