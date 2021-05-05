@@ -119,14 +119,17 @@
 		background-color: #F0F0F6;
 		border-radius: 14px;
 		padding: 14px;
-		overflow-x: scroll;
-		overflow-y: none;
-		white-space: nowrap;
+
+		font-family: 'Karla', sans-serif;
+		border: none;
+		font-size: 16px;
+		color: #2B2C30;
 	}
 
-	.result::-webkit-scrollbar {
-		display: none;
+	.result:focus {
+		outline: none;
 	}
+
 </style>
 
 <body>
@@ -139,9 +142,9 @@
 	<div id="popupContainer">
 		<div id="resultsPopup" class="popup">
 			<h2 class="label">Published URL</h2>
-			<p id="published" class="result"></p>
+			<input id="published" class="result"></input>
 			<h2 class="label">Edit URL</h2>
-			<p id="edit" class="result"></p>
+			<input id="edit" class="result"></input>
 			<div id="close" class="button">Close</div>
 		</div>
 	</div>
@@ -165,7 +168,7 @@
                 });
                 return i - 1;
             })
-            let answers = splitData.map(ans => ans.slice(1, ans.length - 1).map(ians => ians.substring(ians.indexOf(/'. '/) + 4)));
+            let answers = splitData.map(ans => ans.slice(1, ans.length - 1).map(iAns => iAns.substring(iAns.indexOf(/'. '/) + 4)));
 
             google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex);
         })
@@ -178,14 +181,22 @@
         }
 
         function successPopup(published, edit) {
-            document.querySelector("#published").textContent = published;
-            document.querySelector("#edit").textContent = edit;
+            document.querySelector("#published").value = published;
+            document.querySelector("#edit").value = edit;
             document.querySelector("#popupContainer").style.display = 'flex';
         }
 
         document.querySelector("#close").addEventListener('click', () => {
             document.querySelector("#popupContainer").style.display = 'none';
         })
+
+		document.querySelectorAll('.result').forEach(r => {
+			r.addEventListener('click', () => {
+				r.select();
+				r.setSelectionRange(0, 999999);
+				document.execCommand('copy');
+			})
+		})
 	</script>
 </body>
 
