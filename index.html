@@ -78,6 +78,13 @@
 		right: 28px;
 	}
 
+	.executing {
+		color: #2F80ED;
+		background-color: #F0F0F6;
+		border: 2px solid #2F80ED;
+		cursor: progress;
+	}
+
 	#close {
 		bottom: 28px;
 	}
@@ -128,7 +135,7 @@
 		<h1>AIKEN Importer</h1>
 		<div id="createQuiz" class="button">Create Quiz</div>
 	</div>
-	<textarea id="quizInput"></textarea>
+	<textarea id="quizInput" autofocus></textarea>
 	<div id="popupContainer">
 		<div id="resultsPopup" class="popup">
 			<h2 class="label">Published URL</h2>
@@ -140,8 +147,12 @@
 	</div>
 	<script>
 		let data;
+		let executing = false;
 
         document.querySelector("#createQuiz").addEventListener('click', () => {
+			if (executing) return;
+			executing = true;
+			document.querySelector("#createQuiz").classList.toggle('executing');
             data = document.querySelector("#quizInput").value;
             let splitData = data.split(/\n\n/gm).map(q => q.split(/\n/gm));
             let questions = splitData.map(q => q[0]);
@@ -162,6 +173,8 @@
         function onSuccess(message) {
             message = JSON.parse(message);
             successPopup(message.published, message.edit);
+			executing = false;
+			document.querySelector("#createQuiz").classList.toggle('executing');
         }
 
         function successPopup(published, edit) {
