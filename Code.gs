@@ -46,4 +46,5 @@ function addQuestion(form, questionType, question, answers, correctAnswers) {
   })
   Logger.log(choices);
   item.setChoices(choices);
+  item.setPoints(1);
 }
