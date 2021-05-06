@@ -1,7 +1,4 @@
-let title = 'Sample Quiz'
-let description = 'Sample quiz description';
-
-function createQuiz(questions, answers, correctIndex) {
+function createQuiz(questions, answers, correctIndex, title = 'Untitled Quiz', description = false) {
   const quiz_template = DriveApp.getFileById('1yDuqYc-h6Rf2pscTaFHtEQ5iixDwK7qhM8jFe9vIqSw');
   const quiz = quiz_template.makeCopy(title);
   const id = quiz.getId();

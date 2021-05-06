@@ -7,7 +7,7 @@
 <title>AIKEN Importer</title>
 
 <style>
-	@import url('https://fonts.googleapis.com/css2?family=Karla&family=Montserrat:wght@600&display=swap');
+	@import url('https://fonts.googleapis.com/css2?family=Karla&family=Montserrat:wght@600&family=Material+Icons+Round&display=swap');
 
 	body,
 	html {
@@ -86,7 +86,7 @@
 		cursor: progress;
 	}
 
-	#close {
+	.close {
 		bottom: 28px;
 	}
 
@@ -111,6 +111,7 @@
 		height: 336px;
 		border-radius: 28px;
 		padding: 28px;
+		display: none;
 	}
 
 	.result {
@@ -135,6 +136,24 @@
 		cursor: copy;
 	}
 
+	.detail {
+		width: calc(100% - 28px);
+		height: 28px;
+		line-height: 28px;
+		background-color: #F0F0F6;
+		border-radius: 14px;
+		padding: 14px;
+
+		font-family: 'Karla', sans-serif;
+		border: none;
+		font-size: 16px;
+		color: #2B2C30;
+	}
+
+	.detail:focus {
+		outline: none;
+	}
+
 	.toast {
 		background-color: #F0F0F6;
 		color: #2B2C30;
@@ -150,14 +169,26 @@
 		display: flex;
 		align-items: center;
 		z-index: 100;
+		font-size: 16px;
+		font-family: 'Karla', sans-serif;
 	}
 
+	#documentDetails {
+		right: 238px;
+		font-weight: 400;
+		width: 56px;
+		padding: 0;
+		text-align: center;
+	}
 </style>
 
 <body>
 	<div id="navbar">
 		<img src="https://kevinuulong.com/images/logos/kl.svg" />
 		<h1>AIKEN Importer</h1>
+		<span title="Document Details" id="documentDetails" class="material-icons-round button">
+			description
+		</span>
 		<div id="createQuiz" class="button">Create Quiz</div>
 	</div>
 	<textarea id="quizInput" autofocus></textarea>
@@ -167,7 +198,14 @@
 			<input id="published" class="result"></input>
 			<h2 class="label">Edit URL</h2>
 			<input id="edit" class="result"></input>
-			<div id="close" class="button">Close</div>
+			<div id="close" class="button close">Close</div>
+		</div>
+		<div id="detailsPopup" class="popup">
+			<h2 class="label">Quiz Name</h2>
+			<input id="quizName" class="detail" autocomplete="off"></input>
+			<h2 class="label">Quiz Description</h2>
+			<input id="quizDescription" class="detail" autocomplete="off"></input>
+			<div id="closeDescription" class="button close">Save</div>
 		</div>
 	</div>
 	<script>
@@ -191,8 +229,10 @@
 				return i - 1;
 			})
 			let answers = splitData.map(ans => ans.slice(1, ans.length - 1).map(iAns => iAns.substring(iAns.indexOf(/'. '/) + 4)));
+			let title = document.querySelector("#quizName").value;
+			let description = document.querySelector("#quizDescription").value;
 
-			google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex);
+			google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex, title, description);
 		})
 
 		function onSuccess(message) {
@@ -206,6 +246,7 @@
 			document.querySelector("#published").value = published;
 			document.querySelector("#edit").value = edit;
 			document.querySelector("#popupContainer").style.display = 'flex';
+			document.querySelector("#resultsPopup").style.display = 'block';
 		}
 
 		function toast(message) {
@@ -214,14 +255,22 @@
 			let toastMessage = document.createTextNode(message);
 			toast.appendChild(toastMessage);
 			document.body.appendChild(toast);
-			
+
 			setTimeout(() => {
 				toast.remove();
 			}, toast.textContent.length * 75);
 		}
 
-		document.querySelector("#close").addEventListener('click', () => {
-			document.querySelector("#popupContainer").style.display = 'none';
+		document.querySelector("#documentDetails").addEventListener('click', () => {
+			document.querySelector("#popupContainer").style.display = 'flex';
+			document.querySelector("#detailsPopup").style.display = 'block';
+		})
+
+		document.querySelectorAll(".close").forEach(el => {
+			el.addEventListener('click', () => {
+				document.querySelector("#popupContainer").style.display = 'none';
+				el.parentElement.style.display = 'none';
+			})
 		})
 
 		document.querySelectorAll('.result').forEach(r => {
