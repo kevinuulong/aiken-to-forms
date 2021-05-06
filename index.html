@@ -16,6 +16,7 @@
 		color: #2B2C30;
 		height: 100%;
 		overflow: hidden;
+		position: relative;
 	}
 
 	h1 {
@@ -130,11 +131,32 @@
 		outline: none;
 	}
 
+	.result:hover {
+		cursor: copy;
+	}
+
+	.toast {
+		background-color: #F0F0F6;
+		color: #2B2C30;
+		position: absolute;
+		bottom: 28px;
+		margin: auto;
+		min-height: 56px;
+		padding-left: 14px;
+		padding-right: 14px;
+		border-radius: 14px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		align-items: center;
+		z-index: 100;
+	}
+
 </style>
 
 <body>
 	<div id="navbar">
-		<img src="https://kevinuulong.com/images/logos/kl.svg"/>
+		<img src="https://kevinuulong.com/images/logos/kl.svg" />
 		<h1>AIKEN Importer</h1>
 		<div id="createQuiz" class="button">Create Quiz</div>
 	</div>
@@ -148,53 +170,67 @@
 			<div id="close" class="button">Close</div>
 		</div>
 	</div>
+	<!-- <p class="toast">Toast messages! 🍞</p> -->
 	<script>
 		let data;
 		let executing = false;
 
-        document.querySelector("#createQuiz").addEventListener('click', () => {
+		document.querySelector("#createQuiz").addEventListener('click', () => {
 			if (executing) return;
 			executing = true;
 			document.querySelector("#createQuiz").classList.toggle('executing');
-            data = document.querySelector("#quizInput").value;
-            let splitData = data.split(/\n\n/gm).map(q => q.split(/\n/gm));
-            let questions = splitData.map(q => q[0]);
-            let correctIndex = splitData.map(a => {
-                let ans = a[a.length - 1].replace(/ANSWER: /, '');
-                let i = 0;
-                a.some(c => {
-                    if (c.indexOf(ans + '. ') === 0) return i;;
-                    i++;
-                });
-                return i - 1;
-            })
-            let answers = splitData.map(ans => ans.slice(1, ans.length - 1).map(iAns => iAns.substring(iAns.indexOf(/'. '/) + 4)));
+			data = document.querySelector("#quizInput").value;
+			let splitData = data.split(/\n\n/gm).map(q => q.split(/\n/gm));
+			let questions = splitData.map(q => q[0]);
+			let correctIndex = splitData.map(a => {
+				let ans = a[a.length - 1].replace(/ANSWER: /, '');
+				let i = 0;
+				a.some(c => {
+					if (c.indexOf(ans + '. ') === 0) return i;;
+					i++;
+				});
+				return i - 1;
+			})
+			let answers = splitData.map(ans => ans.slice(1, ans.length - 1).map(iAns => iAns.substring(iAns.indexOf(/'. '/) + 4)));
 
-            google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex);
-        })
+			google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex);
+		})
 
-        function onSuccess(message) {
-            message = JSON.parse(message);
-            successPopup(message.published, message.edit);
+		function onSuccess(message) {
+			message = JSON.parse(message);
+			successPopup(message.published, message.edit);
 			executing = false;
 			document.querySelector("#createQuiz").classList.toggle('executing');
-        }
+		}
 
-        function successPopup(published, edit) {
-            document.querySelector("#published").value = published;
-            document.querySelector("#edit").value = edit;
-            document.querySelector("#popupContainer").style.display = 'flex';
-        }
+		function successPopup(published, edit) {
+			document.querySelector("#published").value = published;
+			document.querySelector("#edit").value = edit;
+			document.querySelector("#popupContainer").style.display = 'flex';
+		}
 
-        document.querySelector("#close").addEventListener('click', () => {
-            document.querySelector("#popupContainer").style.display = 'none';
-        })
+		function toast(message) {
+			let toast = document.createElement('p');
+			toast.classList.add('toast');
+			let toastMessage = document.createTextNode(message);
+			toast.appendChild(toastMessage);
+			document.body.appendChild(toast);
+			
+			setTimeout(() => {
+				toast.remove();
+			}, toast.textContent.length * 75);
+		}
+
+		document.querySelector("#close").addEventListener('click', () => {
+			document.querySelector("#popupContainer").style.display = 'none';
+		})
 
 		document.querySelectorAll('.result').forEach(r => {
 			r.addEventListener('click', () => {
 				r.select();
 				r.setSelectionRange(0, 999999);
 				document.execCommand('copy');
+				toast('Copied! 📋')
 			})
 		})
 	</script>
