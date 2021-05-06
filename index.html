@@ -75,8 +75,7 @@
 		font-size: 21px;
 		cursor: pointer;
 		user-select: none;
-		position: absolute;
-		right: 28px;
+		display: inline-block;
 	}
 
 	.executing {
@@ -88,6 +87,8 @@
 
 	.close {
 		bottom: 28px;
+		position: absolute;
+		right: 28px;
 	}
 
 	#popupContainer {
@@ -174,11 +175,51 @@
 	}
 
 	#documentDetails {
-		right: 238px;
 		font-weight: 400;
 		width: 56px;
 		padding: 0;
 		text-align: center;
+	}
+
+	#buttonContainer {
+		height: 56px;
+		width: fit-content;
+		right: 28px;
+		position: absolute;
+	}
+
+	#buttonContainer * {
+		margin-left: 28px;
+		vertical-align: top;
+	}
+
+	#uploadTxt {
+		font-weight: 400;
+		width: 56px;
+		padding: 0;
+		text-align: center;
+	}
+
+	.dragging {
+		display: flex !important;
+	}
+
+	#uploadOverlay {
+		position: absolute;
+		width: 100%;
+		height: calc(100% - 112px);
+		background-color: #2f81edc9;
+		z-index: 10;
+		top: 112px;
+		pointer-events: none;
+		backdrop-filter: blur(2px);
+		display: none;
+		color: #fff;
+		align-items: center;
+		justify-content: center;
+		font-family: 'Karla', sans-serif;
+		font-weight: 400;
+		font-size: 24px;
 	}
 </style>
 
@@ -186,12 +227,20 @@
 	<div id="navbar">
 		<img src="https://kevinuulong.com/images/logos/kl.svg" />
 		<h1>AIKEN Importer</h1>
-		<span title="Document Details" id="documentDetails" class="material-icons-round button">
-			description
-		</span>
-		<div id="createQuiz" class="button">Create Quiz</div>
+		<div id="buttonContainer">
+			<span title="Upload TXT" id="uploadTxt" class="material-icons-round button">
+				upload
+			</span>
+			<span title="Document Details" id="documentDetails" class="material-icons-round button">
+				description
+			</span>
+			<div id="createQuiz" class="button">Create Quiz</div>
+		</div>
 	</div>
 	<textarea id="quizInput" autofocus></textarea>
+	<div id="uploadOverlay">
+		<p id="uploadText">Drop anywhere to upload!</p>
+	</div>
 	<div id="popupContainer">
 		<div id="resultsPopup" class="popup">
 			<h2 class="label">Published URL</h2>
@@ -208,6 +257,7 @@
 			<div id="closeDescription" class="button close">Save</div>
 		</div>
 	</div>
+	<input id="fileUpload" type="file" style="display: none" />
 	<script>
 		let data;
 		let executing = false;
@@ -233,6 +283,7 @@
 			let description = document.querySelector("#quizDescription").value;
 
 			google.script.run.withSuccessHandler(onSuccess).createQuiz(questions, answers, correctIndex, title, description);
+			toast('Generating a new quiz! 🧪');
 		})
 
 		function onSuccess(message) {
@@ -281,6 +332,46 @@
 				toast('Copied! 📋')
 			})
 		})
+
+		document.querySelector("#uploadTxt").addEventListener('click', () => {
+			document.querySelector("#fileUpload").click();
+		})
+
+		let uploadZone = document.querySelector("#quizInput");
+		let uploadOverlay = document.querySelector("#uploadOverlay");
+		uploadZone.addEventListener('dragenter', e => {
+			e.stopPropagation();
+			e.preventDefault();
+			uploadOverlay.classList.add('dragging');
+		})
+		uploadZone.addEventListener('dragover', e => {
+			e.stopPropagation();
+			e.preventDefault();
+			uploadOverlay.classList.add('dragging');
+		})
+		uploadZone.addEventListener('drop', e => {
+			e.stopPropagation();
+			e.preventDefault();
+			uploadOverlay.classList.remove('dragging');
+
+			handleUploads(e.dataTransfer.files);
+		})
+		uploadZone.addEventListener('dragleave', () => {
+			uploadOverlay.classList.remove('dragging');
+		})
+
+		document.querySelector("#fileUpload").addEventListener('change', e => {
+			handleUploads(e.target.files)
+		});
+
+		function handleUploads(files) {
+			let reader = new FileReader();
+			reader.addEventListener('load', () => {
+				document.querySelector("#quizInput").value = reader.result;
+			})
+			reader.readAsText(files[0])
+			toast('Uploaded! ☂️')
+		}
 	</script>
 </body>
 
